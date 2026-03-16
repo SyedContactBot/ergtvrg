@@ -1,4 +1,4 @@
-import { getMostViewed, getNewest, getTodayBirthdays } from '@/lib/api';
+import { browseContent, getTodayBirthdays } from '@/lib/api';
 import { HomeClient } from './HomeClient';
 
 export const revalidate = 300;
@@ -8,26 +8,26 @@ export default async function HomePage() {
 
   try {
     [trendingMovies, newestMovies, trendingShows, newestShows, birthdayActors] = await Promise.all([
-      getMostViewed(2).catch(() => []),
-      getNewest(2).catch(() => []),
-      getMostViewed(1).catch(() => []),
-      getNewest(1).catch(() => []),
+      browseContent({ type: 2 }, 1, 10).catch(() => ({ rows: [] })),
+      browseContent({ type: 2 }, 2, 10).catch(() => ({ rows: [] })),
+      browseContent({ type: 1 }, 1, 10).catch(() => ({ rows: [] })),
+      browseContent({ type: 1 }, 2, 10).catch(() => ({ rows: [] })),
       getTodayBirthdays().catch(() => ({ rows: [] })),
     ]);
   } catch {
-    trendingMovies = [];
-    newestMovies = [];
-    trendingShows = [];
-    newestShows = [];
+    trendingMovies = { rows: [] };
+    newestMovies = { rows: [] };
+    trendingShows = { rows: [] };
+    newestShows = { rows: [] };
     birthdayActors = { rows: [] };
   }
 
   return (
     <HomeClient
-      trendingMovies={trendingMovies || []}
-      newestMovies={newestMovies || []}
-      trendingShows={trendingShows || []}
-      newestShows={newestShows || []}
+      trendingMovies={trendingMovies?.rows || []}
+      newestMovies={newestMovies?.rows || []}
+      trendingShows={trendingShows?.rows || []}
+      newestShows={newestShows?.rows || []}
       birthdayActors={birthdayActors?.rows || []}
     />
   );
