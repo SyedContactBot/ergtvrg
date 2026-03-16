@@ -18,14 +18,14 @@ export default async function LiveTvPage({ searchParams }: PageProps) {
     [categories, languages, channels] = await Promise.all([
       getLiveTvCategories().catch(() => []),
       getLiveTvLanguages().catch(() => []),
-      getLiveTvChannels(Number(languageId), categoryId, page, 30).catch(() => ({
-        rows: [], pages: 0, total: 0, page: 1, size: 30,
+      getLiveTvChannels(Number(languageId), categoryId, page, 100).catch(() => ({
+        rows: [], pages: 0, total: 0, page: 1, size: 100,
       })),
     ]);
   } catch {
     categories = [];
     languages = [];
-    channels = { rows: [], pages: 0, total: 0, page: 1, size: 30 };
+    channels = { rows: [], pages: 0, total: 0, page: 1, size: 100 };
   }
 
   return (
