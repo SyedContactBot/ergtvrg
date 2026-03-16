@@ -37,7 +37,19 @@ async function request<T>(
     headers: HEADERS,
     next: { revalidate: 300 },
   });
-  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  }
+  const text = await res.text();
+  if (!text || text.trim().length === 0) {
+    throw new Error('Empty response from API');
+  }
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new Error('Invalid JSON response from API');
+  }
   if (json.code !== 200) throw new Error(json.msg || 'API Error');
   return json.data as T;
 }
@@ -191,11 +203,43 @@ export async function getLiveTvChannels(
   languageId = 0,
   categoryId: number | string = 0,
   page = 1,
-  size = 20,
+  size = 100,
 ): Promise<PaginatedResponse<LiveTvChannel>> {
   return request<PaginatedResponse<LiveTvChannel>>(
     LIVE_TV_BASE,
     '/v1.9.0/flixfox/livetv/getByLanguageAndCategory',
     { languageId, categoryId, page, size },
+  );
+}
+
+// ---- VIDEO PLAYBACK ----
+
+export interface VideoPlayInfo {
+  videoUrl: string;
+  expireTime: number;
+  isPreview: boolean;
+  videos: VideoSource[];
+  subtitles: SubtitleTrack[];
+  permissionDenied: boolean;
+}
+
+export interface SubtitleTrack {
+  languageId: number;
+  abbreviate: string;
+  title: string;
+  url: string;
+  isDefault: boolean;
+  isAI: number;
+}
+
+export async function getVideoPlayUrl(
+  movieId: string,
+  episodeId: string,
+  resolution = 1,
+): Promise<VideoPlayInfo> {
+  return request<VideoPlayInfo>(
+    FILM_BASE,
+    '/v1.9.0/flixfox/movie/getVideo',
+    { movieId, episodeId, resolution },
   );
 }
